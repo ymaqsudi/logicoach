@@ -1,26 +1,144 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* ---------------------------------------
+   BRAND TOKENS — TD ALIGNED
+---------------------------------------- */
 
 :root {
+  /* Core brand (LogiCoach) */
+  --brand-900: #1e3a8a; /* deep TD blue */
+  --brand-700: #1f4ed8; /* primary blue */
+  --brand-500: #3b82f6;
+
+  /* Tech Duels lineage accent (CONTROLLED) */
+  --td-red-700: #c2413a; /* muted TD red */
+  --td-red-soft: #fde8e6;
+  --td-red-600: var(--td-red-700);
+
+  /* Additional accents for consistency */
+  --accent-600: #2563eb;
+  --accent-700: #1d4ed8;
+  --brand-primary: var(--brand-700);
+  --brand-accent: var(--brand-500);
+  --brand-soft: var(--soft-50);
+
+  /* Neutrals */
   --background: #ffffff;
-  --foreground: #171717;
+  --soft-50: #f8fafc;
+  --soft-100: #f1f5f9;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ---------------------------------------
+   BASE
+---------------------------------------- */
+
+* {
+  border-color: var(--border);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply antialiased;
+}
+
+/* ---------------------------------------
+   TYPOGRAPHY
+---------------------------------------- */
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.015em;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+/* ---------------------------------------
+   MOTION UTILITIES
+---------------------------------------- */
+
+.motion-fade-up {
+  animation: fadeUp var(--duration-base) var(--ease-out) both;
+}
+
+.motion-fade {
+  animation: fade var(--duration-base) var(--ease-out) both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------
+   VISUAL ACCENTS (THIS IS THE MAGIC)
+---------------------------------------- */
+
+.accent-bar {
+  height: 4px;
+  width: 48px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--td-red-700), var(--brand-700));
+}
+
+.section-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ---------------------------------------
+   GLOBAL INTERACTION POLISH
+---------------------------------------- */
+
+button,
+a {
+  transition: color var(--duration-fast) var(--ease-in-out),
+    background-color var(--duration-fast) var(--ease-in-out),
+    box-shadow var(--duration-fast) var(--ease-in-out),
+    transform var(--duration-fast) var(--ease-in-out);
+}
+
+button:hover {
+  transform: translateY(-1px);
 }
