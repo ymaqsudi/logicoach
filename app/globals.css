@@ -5,6 +5,9 @@
    BRAND TOKENS — TD ALIGNED
 ---------------------------------------- */
 
+html {
+  scroll-behavior: smooth;
+}
 :root {
   /* Core brand (LogiCoach) */
   --brand-900: #1e3a8a; /* deep TD blue */
@@ -133,7 +136,8 @@ p {
 
 button,
 a {
-  transition: color var(--duration-fast) var(--ease-in-out),
+  transition:
+    color var(--duration-fast) var(--ease-in-out),
     background-color var(--duration-fast) var(--ease-in-out),
     box-shadow var(--duration-fast) var(--ease-in-out),
     transform var(--duration-fast) var(--ease-in-out);
