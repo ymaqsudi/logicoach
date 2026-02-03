@@ -2,6 +2,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import NetlifyForms from "./netlify-forms";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,7 +48,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="antialiased bg-white text-slate-900">{children}</body>
+      <body className="antialiased bg-white text-slate-900">
+        {/* Netlify needs this at build time */}
+        <NetlifyForms />
+        {children}
+      </body>
     </html>
   );
 }
