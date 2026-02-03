@@ -46,14 +46,26 @@ export default function ContactSection() {
             </div>
           ) : (
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSubmitted(true);
-              }}
+              name="contact"
+              method="POST"
+              data-netlify="true"
+              netlify-honeypot="bot-field"
+              onSubmit={() => setSubmitted(true)}
               className="space-y-6 rounded-2xl bg-slate-800 p-8 ring-1 ring-slate-700"
             >
+              {/* Required hidden input for Netlify */}
+              <input type="hidden" name="form-name" value="contact" />
+
+              {/* Honeypot */}
+              <p className="hidden">
+                <label>
+                  Don’t fill this out: <input name="bot-field" />
+                </label>
+              </p>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <input
+                  name="name"
                   type="text"
                   placeholder="Your name"
                   required
@@ -61,6 +73,7 @@ export default function ContactSection() {
                 />
 
                 <input
+                  name="email"
                   type="email"
                   placeholder="Email address"
                   required
@@ -69,6 +82,7 @@ export default function ContactSection() {
               </div>
 
               <select
+                name="role"
                 required
                 className="w-full rounded-lg bg-slate-900 px-4 py-3 text-sm text-white ring-1 ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
@@ -81,6 +95,7 @@ export default function ContactSection() {
               </select>
 
               <textarea
+                name="message"
                 placeholder="Anything you’d like us to know?"
                 rows={4}
                 className="w-full rounded-lg bg-slate-900 px-4 py-3 text-sm text-white placeholder-slate-500 ring-1 ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
