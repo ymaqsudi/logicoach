@@ -1,6 +1,42 @@
+"use client";
+
+import { useState } from "react";
 import SectionHeader from "@/components/SectionHeader";
 
+const PRICE_IDS = {
+  Student: {
+    threeMonth: "price_1T5FfPEYQwsylCFWOa4Uln1d",
+    sixMonth: "price_1T5FgDEYQwsylCFWtH4DqNG5",
+  },
+  Professional: {
+    threeMonth: "price_1T5FgVEYQwsylCFWx0oZAsfu",
+    sixMonth: "price_1T5FgmEYQwsylCFWqwyA0eWg",
+  },
+  Executive: {
+    threeMonth: "price_1T5Fh1EYQwsylCFWg2ovu8eT",
+    sixMonth: "price_1T5FhFEYQwsylCFWPlmiGJWI",
+  },
+};
+
 export default function Pricing() {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  async function handleCheckout(priceId: string) {
+    setLoadingId(priceId);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      const { url } = await res.json();
+      window.location.href = url;
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setLoadingId(null);
+    }
+  }
+
   return (
     <section className="bg-[#F5F7FA] px-6 py-28">
       <div className="mx-auto max-w-7xl">
@@ -22,26 +58,33 @@ export default function Pricing() {
             <TierCard
               title="Student"
               bestFor="Students & early career"
-              coreValue="Confidence & foundations"
-              monthly="$179 / month"
-              quarterly="$449 / 3 months"
+              coreValue="Confidence & Foundations"
+              threeMonths="$449 / 3 months"
+              sixMonths="$749 / 6 months"
+              priceIds={PRICE_IDS.Student}
+              loadingId={loadingId}
+              onCheckout={handleCheckout}
             />
-
             <TierCard
               title="Professional"
               bestFor="Working professionals"
-              coreValue="Performance & results"
-              monthly="$279 / month"
-              quarterly="$549 / 3 months"
+              coreValue="Performance & Results"
+              threeMonths="$679 / 3 months"
+              sixMonths="$1,299 / 6 months"
+              priceIds={PRICE_IDS.Professional}
+              loadingId={loadingId}
+              onCheckout={handleCheckout}
               featured
             />
-
             <TierCard
               title="Executive"
               bestFor="Leaders & founders"
-              coreValue="Influence & outcome protection"
-              monthly="$349 / month"
-              quarterly="$799 / 3 months"
+              coreValue="Influence & Leadership"
+              threeMonths="$799 / 3 months"
+              sixMonths="$1,499 / 6 months"
+              priceIds={PRICE_IDS.Executive}
+              loadingId={loadingId}
+              onCheckout={handleCheckout}
             />
           </div>
 
@@ -61,7 +104,6 @@ export default function Pricing() {
               Key differences by tier
             </h3>
           </div>
-
           <div className="grid grid-cols-4 text-sm">
             <TableHeader />
             <TableRow
@@ -110,7 +152,6 @@ export default function Pricing() {
           <h3 className="mb-6 text-xl font-semibold text-slate-900">
             Institutions & Organizations
           </h3>
-
           <div className="grid gap-10 md:grid-cols-2">
             <OrgCard
               title="Universities & Education"
@@ -122,7 +163,6 @@ export default function Pricing() {
                 "Live showcases & evaluations",
               ]}
             />
-
             <OrgCard
               title="Corporate Teams"
               description="Standardized communication training for sales, leadership, compliance, and technical teams."
@@ -141,22 +181,28 @@ export default function Pricing() {
 }
 
 /* ======================
-   COMPONENTS
+   TIER CARD
 ====================== */
 
 function TierCard({
   title,
   bestFor,
   coreValue,
-  monthly,
-  quarterly,
+  threeMonths,
+  sixMonths,
+  priceIds,
+  loadingId,
+  onCheckout,
   featured = false,
 }: {
   title: string;
   bestFor: string;
   coreValue: string;
-  monthly: string;
-  quarterly: string;
+  threeMonths: string;
+  sixMonths: string;
+  priceIds: { threeMonth: string; sixMonth: string };
+  loadingId: string | null;
+  onCheckout: (priceId: string) => void;
   featured?: boolean;
 }) {
   return (
@@ -179,17 +225,43 @@ function TierCard({
       <p className="mt-4 text-sm font-medium text-slate-700">Core value</p>
       <p className="text-slate-600">{coreValue}</p>
 
-      <div className="mt-6 space-y-1">
-        <p className="text-2xl font-semibold text-slate-900">{monthly}</p>
-        <p className="text-sm text-slate-500">{quarterly}</p>
+      <div className="mt-6 space-y-3">
+        <div className="rounded-xl bg-slate-50 px-4 py-3">
+          <p className="text-xl font-semibold text-slate-900">{threeMonths}</p>
+        </div>
+        <div className="rounded-xl bg-indigo-50 px-4 py-3">
+          <p className="text-xl font-semibold text-indigo-700">{sixMonths}</p>
+          <p className="text-xs text-indigo-400 mt-0.5">Best value</p>
+        </div>
       </div>
 
-      <button className="mt-8 w-full rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-indigo-500">
-        Get started
-      </button>
+      <div className="mt-6 space-y-2">
+        <button
+          onClick={() => onCheckout(priceIds.threeMonth)}
+          disabled={loadingId !== null}
+          className="w-full rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loadingId === priceIds.threeMonth
+            ? "Redirecting…"
+            : "Start 3-month plan"}
+        </button>
+        <button
+          onClick={() => onCheckout(priceIds.sixMonth)}
+          disabled={loadingId !== null}
+          className="w-full rounded-full border border-indigo-300 px-6 py-3 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loadingId === priceIds.sixMonth
+            ? "Redirecting…"
+            : "Start 6-month plan"}
+        </button>
+      </div>
     </div>
   );
 }
+
+/* ======================
+   ORG CARD
+====================== */
 
 function OrgCard({
   title,
@@ -204,7 +276,6 @@ function OrgCard({
     <div className="rounded-2xl bg-white p-8 ring-1 ring-slate-200">
       <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
       <p className="mt-2 text-slate-600">{description}</p>
-
       <ul className="mt-6 space-y-3 text-sm text-slate-600">
         {features.map((f) => (
           <li key={f} className="flex gap-2">
@@ -213,7 +284,6 @@ function OrgCard({
           </li>
         ))}
       </ul>
-
       <a
         href="/contact"
         className="mt-8 block w-full rounded-full border border-slate-300 px-6 py-3 text-center text-sm font-medium text-slate-900 transition hover:border-indigo-400 hover:text-indigo-600"
@@ -223,6 +293,10 @@ function OrgCard({
     </div>
   );
 }
+
+/* ======================
+   TABLE
+====================== */
 
 function TableHeader() {
   return (
