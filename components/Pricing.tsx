@@ -6,16 +6,16 @@ import SectionHeader from "@/components/SectionHeader";
 // ─── Standard price IDs ───────────────────────────────────────────────────────
 const PRICE_IDS = {
   Student: {
-    threeMonth: "price_1T5G3tEYQwsylCFWt5EzzCw9",
-    sixMonth: "price_1T5G4DEYQwsylCFWkrKwkIRZ",
+    threeMonth: "price_1T5FfPEYQwsylCFWOa4Uln1d",
+    sixMonth: "price_1T5FgDEYQwsylCFWtH4DqNG5",
   },
   Professional: {
-    threeMonth: "price_1T5G4gEYQwsylCFWTWFdFLbK",
-    sixMonth: "price_1T5G4sEYQwsylCFWPC7kPAeP",
+    threeMonth: "price_1T5FgVEYQwsylCFWx0oZAsfu",
+    sixMonth: "price_1T5FgmEYQwsylCFWqwyA0eWg",
   },
   Executive: {
-    threeMonth: "price_1T5G53EYQwsylCFW4VPIuH8R",
-    sixMonth: "price_1T5G5IEYQwsylCFW5L0OYudP",
+    threeMonth: "price_1T5Fh1EYQwsylCFWg2ovu8eT",
+    sixMonth: "price_1T5FhFEYQwsylCFWPlmiGJWI",
   },
 };
 
