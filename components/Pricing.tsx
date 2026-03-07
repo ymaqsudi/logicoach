@@ -3,23 +3,61 @@
 import { useState } from "react";
 import SectionHeader from "@/components/SectionHeader";
 
+// ─── Standard price IDs ───────────────────────────────────────────────────────
 const PRICE_IDS = {
   Student: {
-    threeMonth: "price_1T5FfPEYQwsylCFWOa4Uln1d",
-    sixMonth: "price_1T5FgDEYQwsylCFWtH4DqNG5",
+    threeMonth: "price_1T5G3tEYQwsylCFWt5EzzCw9",
+    sixMonth: "price_1T5G4DEYQwsylCFWkrKwkIRZ",
   },
   Professional: {
-    threeMonth: "price_1T5FgVEYQwsylCFWx0oZAsfu",
-    sixMonth: "price_1T5FgmEYQwsylCFWqwyA0eWg",
+    threeMonth: "price_1T5G4gEYQwsylCFWTWFdFLbK",
+    sixMonth: "price_1T5G4sEYQwsylCFWPC7kPAeP",
   },
   Executive: {
-    threeMonth: "price_1T5Fh1EYQwsylCFWg2ovu8eT",
-    sixMonth: "price_1T5FhFEYQwsylCFWPlmiGJWI",
+    threeMonth: "price_1T5G53EYQwsylCFW4VPIuH8R",
+    sixMonth: "price_1T5G5IEYQwsylCFW5L0OYudP",
+  },
+};
+
+// ─── Company promo codes ──────────────────────────────────────────────────────
+// Each code maps to a single overriding price ID (flat custom price).
+// Add the price_ IDs from Stripe once you've created the products.
+const COMPANY_CODES: Record<string, { priceId: string; label: string }> = {
+  ACEOFCLOUD: {
+    priceId: "price_1T8QnWEYQwsylCFWAYqJkpoR", // $549 / 3 months
+    label: "Ace of Cloud — 3 Month ($549)",
+  },
+  VIANOVA: {
+    priceId: "price_1T8QnjEYQwsylCFWefYYOser", // $999 / 6 months
+    label: "Vianova — 6 Month ($999)",
   },
 };
 
 export default function Pricing() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoError, setPromoError] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    priceId: string;
+    label: string;
+  } | null>(null);
+
+  function handleApplyCode() {
+    const code = promoCode.trim().toUpperCase();
+    if (COMPANY_CODES[code]) {
+      setAppliedPromo(COMPANY_CODES[code]);
+      setPromoError("");
+    } else {
+      setAppliedPromo(null);
+      setPromoError("Code not recognised. Check with your company contact.");
+    }
+  }
+
+  function handleRemoveCode() {
+    setAppliedPromo(null);
+    setPromoCode("");
+    setPromoError("");
+  }
 
   async function handleCheckout(priceId: string) {
     setLoadingId(priceId);
@@ -27,9 +65,13 @@ export default function Pricing() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({
+          priceId: appliedPromo ? appliedPromo.priceId : priceId,
+          allowPromotionCodes: true,
+        }),
       });
-      const { url } = await res.json();
+      const { url, error } = await res.json();
+      if (error) throw new Error(error);
       window.location.href = url;
     } catch (err) {
       console.error("Checkout error:", err);
@@ -64,6 +106,7 @@ export default function Pricing() {
               priceIds={PRICE_IDS.Student}
               loadingId={loadingId}
               onCheckout={handleCheckout}
+              companyOverride={appliedPromo}
             />
             <TierCard
               title="Professional"
@@ -75,6 +118,7 @@ export default function Pricing() {
               loadingId={loadingId}
               onCheckout={handleCheckout}
               featured
+              companyOverride={appliedPromo}
             />
             <TierCard
               title="Executive"
@@ -85,7 +129,46 @@ export default function Pricing() {
               priceIds={PRICE_IDS.Executive}
               loadingId={loadingId}
               onCheckout={handleCheckout}
+              companyOverride={appliedPromo}
             />
+          </div>
+
+          {/* =======================
+            COMPANY CODE — subtle, tucked at the bottom
+        ======================= */}
+          <div className="mt-16 flex flex-col items-center gap-2">
+            {appliedPromo ? (
+              <div className="flex items-center gap-3 rounded-full bg-green-50 border border-green-200 px-5 py-2.5">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-green-700">
+                  {appliedPromo.label} applied
+                </span>
+                <button
+                  onClick={handleRemoveCode}
+                  className="ml-2 text-xs text-green-500 hover:text-green-700 underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyCode()}
+                  placeholder="Have a company code?"
+                  className="rounded-full border border-slate-200 bg-transparent px-4 py-1.5 text-xs text-slate-400 placeholder:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-300 w-44"
+                />
+                <button
+                  onClick={handleApplyCode}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-slate-500 transition"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+            {promoError && <p className="text-xs text-red-400">{promoError}</p>}
           </div>
 
           <p className="mt-10 text-center text-sm text-slate-500">
@@ -193,6 +276,7 @@ function TierCard({
   priceIds,
   loadingId,
   onCheckout,
+  companyOverride,
   featured = false,
 }: {
   title: string;
@@ -203,6 +287,7 @@ function TierCard({
   priceIds: { threeMonth: string; sixMonth: string };
   loadingId: string | null;
   onCheckout: (priceId: string) => void;
+  companyOverride: { priceId: string; label: string } | null;
   featured?: boolean;
 }) {
   return (
@@ -236,24 +321,38 @@ function TierCard({
       </div>
 
       <div className="mt-6 space-y-2">
-        <button
-          onClick={() => onCheckout(priceIds.threeMonth)}
-          disabled={loadingId !== null}
-          className="w-full rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loadingId === priceIds.threeMonth
-            ? "Redirecting…"
-            : "Start 3-month plan"}
-        </button>
-        <button
-          onClick={() => onCheckout(priceIds.sixMonth)}
-          disabled={loadingId !== null}
-          className="w-full rounded-full border border-indigo-300 px-6 py-3 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loadingId === priceIds.sixMonth
-            ? "Redirecting…"
-            : "Start 6-month plan"}
-        </button>
+        {companyOverride ? (
+          <button
+            onClick={() => onCheckout(companyOverride.priceId)}
+            disabled={loadingId !== null}
+            className="w-full rounded-full bg-green-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-green-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loadingId === companyOverride.priceId
+              ? "Redirecting…"
+              : `Checkout — ${companyOverride.label}`}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => onCheckout(priceIds.threeMonth)}
+              disabled={loadingId !== null}
+              className="w-full rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loadingId === priceIds.threeMonth
+                ? "Redirecting…"
+                : "Start 3-month plan"}
+            </button>
+            <button
+              onClick={() => onCheckout(priceIds.sixMonth)}
+              disabled={loadingId !== null}
+              className="w-full rounded-full border border-indigo-300 px-6 py-3 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loadingId === priceIds.sixMonth
+                ? "Redirecting…"
+                : "Start 6-month plan"}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
