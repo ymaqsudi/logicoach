@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       // Allows users to enter promo codes (e.g. LOGIC10) on Stripe's checkout page
       allow_promotion_codes: allowPromotionCodes ?? false,
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?price_id=${priceId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/#pricing`,
     });
 
     return NextResponse.json({ url: session.url });
