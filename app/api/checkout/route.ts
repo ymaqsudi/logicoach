@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: NextRequest) {
   try {
-    const { priceId, allowPromotionCodes } = await req.json();
+    const { priceId, allowPromotionCodes, metadata } = await req.json();
 
     if (!priceId) {
       return NextResponse.json({ error: "Missing priceId" }, { status: 400 });
@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
       mode: "payment",
       // Allows users to enter promo codes (e.g. LOGIC10) on Stripe's checkout page
       allow_promotion_codes: allowPromotionCodes ?? false,
+      // Seat emails stored here for multi-seat plans — visible in Stripe Dashboard → payment → metadata
+      ...(metadata ? { metadata } : {}),
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?price_id=${priceId}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/#pricing`,
     });

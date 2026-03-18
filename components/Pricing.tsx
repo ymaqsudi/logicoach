@@ -20,16 +20,26 @@ const PRICE_IDS = {
 };
 
 // ─── Company promo codes ──────────────────────────────────────────────────────
-// Each code maps to a single overriding price ID (flat custom price).
-// Add the price_ IDs from Stripe once you've created the products.
-const COMPANY_CODES: Record<string, { priceId: string; label: string }> = {
+// seats: 1 = standard single checkout, 2 = triggers email collection modal
+const COMPANY_CODES: Record<
+  string,
+  { priceId: string; label: string; seats: number }
+> = {
   ACEOFCLOUD: {
     priceId: "price_1T8QnWEYQwsylCFWAYqJkpoR", // $549 / 3 months
     label: "Ace of Cloud — 3 Month ($549)",
+    seats: 1,
   },
   VIANOVA: {
     priceId: "price_1T8QnjEYQwsylCFWefYYOser", // $999 / 6 months
     label: "Vianova — 6 Month ($999)",
+    seats: 1,
+  },
+  // ⬇ Swap company name, code word, and price ID when confirmed by your boss
+  MERIDIAN24: {
+    priceId: "price_1TC9M9EYQwsylCFW5ybSiHCz", // $1,200 / 6 months / 2 seats
+    label: "Meridian — 2 Seats, 6 Month ($1,200)",
+    seats: 2,
   },
 };
 
@@ -40,7 +50,15 @@ export default function Pricing() {
   const [appliedPromo, setAppliedPromo] = useState<{
     priceId: string;
     label: string;
+    seats: number;
   } | null>(null);
+
+  // Multi-seat modal state
+  const [showSeatModal, setShowSeatModal] = useState(false);
+  const [pendingPriceId, setPendingPriceId] = useState<string | null>(null);
+  const [seat1Email, setSeat1Email] = useState("");
+  const [seat2Email, setSeat2Email] = useState("");
+  const [seatError, setSeatError] = useState("");
 
   function handleApplyCode() {
     const code = promoCode.trim().toUpperCase();
@@ -59,7 +77,10 @@ export default function Pricing() {
     setPromoError("");
   }
 
-  async function handleCheckout(priceId: string) {
+  async function handleCheckout(
+    priceId: string,
+    seatEmails?: { seat1: string; seat2: string },
+  ) {
     setLoadingId(priceId);
     try {
       const res = await fetch("/api/checkout", {
@@ -68,6 +89,9 @@ export default function Pricing() {
         body: JSON.stringify({
           priceId: appliedPromo ? appliedPromo.priceId : priceId,
           allowPromotionCodes: true,
+          metadata: seatEmails
+            ? { seat_1_email: seatEmails.seat1, seat_2_email: seatEmails.seat2 }
+            : undefined,
         }),
       });
       const { url, error } = await res.json();
@@ -77,6 +101,34 @@ export default function Pricing() {
       console.error("Checkout error:", err);
       setLoadingId(null);
     }
+  }
+
+  // Called when a card button is clicked — checks if multi-seat modal is needed
+  function handleCardCheckout(priceId: string) {
+    if (appliedPromo && appliedPromo.seats === 2) {
+      setPendingPriceId(appliedPromo.priceId);
+      setShowSeatModal(true);
+    } else {
+      handleCheckout(priceId);
+    }
+  }
+
+  async function handleSeatModalSubmit() {
+    if (!seat1Email || !seat2Email) {
+      setSeatError("Please enter both email addresses.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(seat1Email) || !emailRegex.test(seat2Email)) {
+      setSeatError("Please enter valid email addresses.");
+      return;
+    }
+    setSeatError("");
+    setShowSeatModal(false);
+    await handleCheckout(pendingPriceId!, {
+      seat1: seat1Email,
+      seat2: seat2Email,
+    });
   }
 
   return (
@@ -105,7 +157,7 @@ export default function Pricing() {
               sixMonths="$749 / 6 months"
               priceIds={PRICE_IDS.Student}
               loadingId={loadingId}
-              onCheckout={handleCheckout}
+              onCheckout={handleCardCheckout}
               companyOverride={appliedPromo}
             />
             <TierCard
@@ -116,7 +168,7 @@ export default function Pricing() {
               sixMonths="$1,299 / 6 months"
               priceIds={PRICE_IDS.Professional}
               loadingId={loadingId}
-              onCheckout={handleCheckout}
+              onCheckout={handleCardCheckout}
               featured
               companyOverride={appliedPromo}
             />
@@ -128,14 +180,14 @@ export default function Pricing() {
               sixMonths="$1,499 / 6 months"
               priceIds={PRICE_IDS.Executive}
               loadingId={loadingId}
-              onCheckout={handleCheckout}
+              onCheckout={handleCardCheckout}
               companyOverride={appliedPromo}
             />
           </div>
 
           {/* =======================
-            COMPANY CODE — subtle, tucked at the bottom
-        ======================= */}
+              COMPANY CODE — subtle, tucked at the bottom
+          ======================= */}
           <div className="mt-16 flex flex-col items-center gap-2">
             {appliedPromo ? (
               <div className="flex items-center gap-3 rounded-full bg-green-50 border border-green-200 px-5 py-2.5">
@@ -259,6 +311,73 @@ export default function Pricing() {
           </div>
         </div>
       </div>
+
+      {/* =======================
+          MULTI-SEAT EMAIL MODAL
+      ======================= */}
+      {showSeatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+            <h2 className="text-lg font-semibold text-slate-900">
+              Enter seat holder emails
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              This plan includes 2 seats. Please provide the email address for
+              each person.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  Seat 1 — Email address
+                </label>
+                <input
+                  type="email"
+                  value={seat1Email}
+                  onChange={(e) => setSeat1Email(e.target.value)}
+                  placeholder="person1@company.com"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  Seat 2 — Email address
+                </label>
+                <input
+                  type="email"
+                  value={seat2Email}
+                  onChange={(e) => setSeat2Email(e.target.value)}
+                  placeholder="person2@company.com"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+            </div>
+
+            {seatError && (
+              <p className="mt-3 text-xs text-red-500">{seatError}</p>
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSeatModal(false);
+                  setSeatError("");
+                }}
+                className="flex-1 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSeatModalSubmit}
+                disabled={loadingId !== null}
+                className="flex-1 rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loadingId ? "Redirecting…" : "Continue to payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -287,7 +406,7 @@ function TierCard({
   priceIds: { threeMonth: string; sixMonth: string };
   loadingId: string | null;
   onCheckout: (priceId: string) => void;
-  companyOverride: { priceId: string; label: string } | null;
+  companyOverride: { priceId: string; label: string; seats: number } | null;
   featured?: boolean;
 }) {
   return (
