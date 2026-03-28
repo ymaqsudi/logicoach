@@ -6,12 +6,12 @@ import SectionHeader from "@/components/SectionHeader";
 // ─── Standard price IDs ───────────────────────────────────────────────────────
 const PRICE_IDS = {
   Student: {
-    threeMonth: "price_1T5FfPEYQwsylCFWOa4Uln1d",
-    sixMonth: "price_1T5FgDEYQwsylCFWtH4DqNG5",
+    threeMonth: "price_1TFz3WEYQwsylCFWFCGvu5Ay",
+    sixMonth: "price_1TFz4FEYQwsylCFWLqNfklfV",
   },
   Professional: {
-    threeMonth: "price_1T5FgVEYQwsylCFWx0oZAsfu",
-    sixMonth: "price_1T5FgmEYQwsylCFWqwyA0eWg",
+    threeMonth: "price_1TFz4mEYQwsylCFWFTG9NZrC",
+    sixMonth: "price_1TFz5HEYQwsylCFWzjUrgg90",
   },
   Executive: {
     threeMonth: "price_1T5Fh1EYQwsylCFWg2ovu8eT",
@@ -153,8 +153,9 @@ export default function Pricing() {
               title="Student"
               bestFor="Students & early career"
               coreValue="Confidence & Foundations"
-              threeMonths="$449 / 3 months"
-              sixMonths="$749 / 6 months"
+              coachingHours="2 hrs / month"
+              threeMonths="$399 / 3 months"
+              sixMonths="$699 / 6 months"
               priceIds={PRICE_IDS.Student}
               loadingId={loadingId}
               onCheckout={handleCardCheckout}
@@ -164,8 +165,9 @@ export default function Pricing() {
               title="Professional"
               bestFor="Working professionals"
               coreValue="Performance & Results"
-              threeMonths="$679 / 3 months"
-              sixMonths="$1,299 / 6 months"
+              coachingHours="2 hrs / month"
+              threeMonths="$599 / 3 months"
+              sixMonths="$1,049 / 6 months"
               priceIds={PRICE_IDS.Professional}
               loadingId={loadingId}
               onCheckout={handleCardCheckout}
@@ -176,6 +178,7 @@ export default function Pricing() {
               title="Executive"
               bestFor="Leaders & founders"
               coreValue="Influence & Leadership"
+              coachingHours="2 hrs / month"
               threeMonths="$799 / 3 months"
               sixMonths="$1,499 / 6 months"
               priceIds={PRICE_IDS.Executive}
@@ -186,9 +189,9 @@ export default function Pricing() {
           </div>
 
           {/* =======================
-              COMPANY CODE — subtle, tucked at the bottom
+              COMPANY CODE — visible but understated
           ======================= */}
-          <div className="mt-16 flex flex-col items-center gap-2">
+          <div className="mt-12 flex flex-col items-center gap-2">
             {appliedPromo ? (
               <div className="flex items-center gap-3 rounded-full bg-green-50 border border-green-200 px-5 py-2.5">
                 <span className="h-2 w-2 rounded-full bg-green-500" />
@@ -203,18 +206,18 @@ export default function Pricing() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-2 py-2 shadow-sm">
                 <input
                   type="text"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleApplyCode()}
                   placeholder="Have a company code?"
-                  className="rounded-full border border-slate-200 bg-transparent px-4 py-1.5 text-xs text-slate-400 placeholder:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-300 w-44"
+                  className="bg-transparent pl-3 pr-1 text-sm text-slate-600 placeholder:text-slate-400 focus:outline-none w-52"
                 />
                 <button
                   onClick={handleApplyCode}
-                  className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-slate-500 transition"
+                  className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-slate-700 transition"
                 >
                   Apply
                 </button>
@@ -223,7 +226,7 @@ export default function Pricing() {
             {promoError && <p className="text-xs text-red-400">{promoError}</p>}
           </div>
 
-          <p className="mt-10 text-center text-sm text-slate-500">
+          <p className="mt-8 text-center text-sm text-slate-500">
             All individual plans include{" "}
             <strong>2 hours of live coaching per month</strong>, plus
             coach-calibrated AI feedback between sessions.
@@ -390,6 +393,7 @@ function TierCard({
   title,
   bestFor,
   coreValue,
+  coachingHours,
   threeMonths,
   sixMonths,
   priceIds,
@@ -401,6 +405,7 @@ function TierCard({
   title: string;
   bestFor: string;
   coreValue: string;
+  coachingHours: string;
   threeMonths: string;
   sixMonths: string;
   priceIds: { threeMonth: string; sixMonth: string };
@@ -429,7 +434,27 @@ function TierCard({
       <p className="mt-4 text-sm font-medium text-slate-700">Core value</p>
       <p className="text-slate-600">{coreValue}</p>
 
-      <div className="mt-6 space-y-3">
+      {/* Coaching hours badge */}
+      <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-100 px-3 py-1">
+        <svg
+          className="h-3.5 w-3.5 text-indigo-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span className="text-xs font-semibold text-indigo-600">
+          {coachingHours} live coaching
+        </span>
+      </div>
+
+      <div className="mt-5 space-y-3">
         <div className="rounded-xl bg-slate-50 px-4 py-3">
           <p className="text-xl font-semibold text-slate-900">{threeMonths}</p>
         </div>
